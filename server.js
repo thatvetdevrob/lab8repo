@@ -1,10 +1,19 @@
 'use strict';
 /*
      __
- ___( o)>   
+ ___( o)>
  \ <_. )
   `---'   hjw <Rubber duck says: setting everyhign up and isntall via command line
+
+  ############################################################################################
+
+GLOBAL AND SETTUP
+
+  ############################################################################################
+
 */
+
+
 
 const express = require('express');
 const app = express();
@@ -19,12 +28,32 @@ client.on('error', err => {
   console.log('ERROR', err);
 });
 
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: lets make everyhting set from the env and make them variables on this file
+  nothing should show but placeholders
+  ############################################################################################
+
+PATHS
+
+  ############################################################################################
+
+*/
 const superagent = require('superagent');
 // define PORT as the port value in our .env. if anything is wrong with our .env or dotenv, assign port 3001
 const PORT = process.env.PORT || 3001;
-const GEOCODE_API_KEY = process.env.GEOCODE_API_KEY;
+const GEO_DATA_API_KEY = process.env.GEO_DATA_API_KEY;
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 const HIKE_API_KEY = process.env.HIKE_API_KEY;
+
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: setting everyhign was getting error due to env file
+*/
 
 app.get('/location', locationHandler);
 
@@ -32,11 +61,38 @@ app.get('/weather', weatherHandler);
 
 app.get('/trails', trailsHandler);
 
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: paths defined, lets go in.
 
+
+console.log('past the paths');
+
+
+############################################################################################
+
+LOCATION
+
+############################################################################################
+
+*/
 
 function locationHandler(request, response) {
+
+  // console.log('in location');
+
+
+  /*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: error because i forgot about making the table on the command line. we are good to go
+*/
+
   let city = request.query.city;
-  let sql = 'SELECT * FROM past_queries;';
+  let sql = 'SELECT * FROM saved_queries;';
   let cachedCityData;
   client.query(sql)
     .then(resultFromPostgres => {
@@ -48,9 +104,11 @@ function locationHandler(request, response) {
       if (cachedCityData) {
         response.status(200).send(cachedCityData);
       } else {
+
+        console.log('ping API LOCATION API');
         let url = 'https://us1.locationiq.com/v1/search.php';
         let queryParams = {
-          key: GEOCODE_API_KEY,
+          key: GEO_DATA_API_KEY,
           q: city,
           format: 'json',
           limit: 1
@@ -58,6 +116,7 @@ function locationHandler(request, response) {
         superagent.get(url)
           .query(queryParams)
           .then(locationResult => {
+            console.log('result is: ', locationResult.body);
             let geoData = locationResult.body;
             const cityData = new Location(city, geoData[0]);
             let sql = 'INSERT INTO past_queries (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
@@ -69,16 +128,28 @@ function locationHandler(request, response) {
             response.status(200).send(cityData);
           }).catch((error) => {
             console.log('ERROR', error);
-            response.status(500).send('Our bad.');
+            response.status(500).send('Sorry! Please try again!');
           });
       }
     }).catch((error) => {
       console.log('ERROR', error);
-      response.status(500).send('Our bad.');
+      response.status(500).send('Sorry! Please try again!');
     });
 }
 
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: location is taken care off
 
+  ############################################################################################
+
+Weather
+
+############################################################################################
+
+*/
 
 function weatherHandler(request, response) {
   let fullCity = request.query.formatted_query;
@@ -102,10 +173,24 @@ function weatherHandler(request, response) {
       response.send(weatherArray);
     }).catch((error) => {
       console.log('ERROR', error);
-      response.status(500).send('Our bad.');
+      response.status(500).send('Sorry! Please try again!');
     });
 
 }
+
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: weather is done, on to trails
+
+############################################################################################
+
+TRAILS
+
+############################################################################################
+
+*/
 
 function trailsHandler(request, response) {
   let latitude = request.query.latitude;
@@ -126,15 +211,24 @@ function trailsHandler(request, response) {
       response.send(allTrails);
     }).catch((error) => {
       console.log('ERROR', error);
-      response.status(500).send('Our bad.');
+      response.status(500).send('Sorry! Please try again!');
     });
 }
 
-// function catchErrorHandle(request, response)) {
-//   console.log('ERROR', error);
-//   response.status(500).send('Our bad.');
-// }
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: lets group our constructors
 
+
+############################################################################################
+
+CONSTRUCTORS
+
+############################################################################################
+
+*/
 
 function Location(query, obj) {
   this.search_query = query;
@@ -147,8 +241,6 @@ function Weather(obj) {
   this.forecast = obj.weather.description;
   this.time = new Date(obj.valid_date).toDateString();
 }
-
-
 
 function Trail(obj) {
   this.name = obj.name;
@@ -163,6 +255,21 @@ function Trail(obj) {
   this.condition_date = conditionDateTime[0];
   this.condition_time = conditionDateTime[1];
 }
+
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: lets group our constructors
+
+
+############################################################################################
+
+OPEN UP THIS LISTENER
+
+############################################################################################
+
+*/
 
 client.connect()
   .then(() => {
