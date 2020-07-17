@@ -235,9 +235,6 @@ function trailsHandler(request, response) {
 
 MOVIES
 
-TMDB API KEY ce5647b488052f5943bd02072b1896dc
-
-https://api.themoviedb.org/3/movie/550?api_key=ce5647b488052f5943bd02072b1896dc
 
 ############################################################################################
 https://image.tmdb.org/t/p/w500
@@ -279,13 +276,9 @@ YELP
 
  Client ID
 
-tEcPE6aKEhFpZN4GDCM5qQ
-API Key
-
-W4Ga-8DT8eiLhSfO9X7JNKVzVa6aX6DONCQa6IxZp_hh3itmBVzU-5DJ3pDvQMYN-pEUkTCN_g3u6C-0mlrvfGMFSmiWv1kGba7z1LXswkvf3WSya4-5OP9KwtMRX3Yx
 
 ############################################################################################
-
+ 
 */
 
 function yelpHandler(request, response) {
