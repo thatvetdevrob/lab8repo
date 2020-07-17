@@ -9,6 +9,10 @@
 
 GLOBAL AND SETTUP
 
+
+
+
+
   ############################################################################################
 
 */
@@ -47,6 +51,7 @@ const PORT = process.env.PORT || 3001;
 const GEO_DATA_API_KEY = process.env.GEO_DATA_API_KEY;
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 const HIKE_API_KEY = process.env.HIKE_API_KEY;
+const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
 
 /*
      __
@@ -60,6 +65,8 @@ app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 
 app.get('/trails', trailsHandler);
+
+app.get('/movies', movieHandler);
 
 /*
      __
@@ -104,8 +111,6 @@ function locationHandler(request, response) {
       if (cachedCityData) {
         response.status(200).send(cachedCityData);
       } else {
-
-        console.log('ping API LOCATION API');
         let url = 'https://us1.locationiq.com/v1/search.php';
         let queryParams = {
           key: GEO_DATA_API_KEY,
@@ -188,6 +193,7 @@ function weatherHandler(request, response) {
 
 TRAILS
 
+
 ############################################################################################
 
 */
@@ -214,6 +220,50 @@ function trailsHandler(request, response) {
       response.status(500).send('Sorry! Please try again!');
     });
 }
+
+
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: weather is done, on to trails
+
+############################################################################################
+
+MOVIES
+
+TMDB API KEY ce5647b488052f5943bd02072b1896dc
+
+https://api.themoviedb.org/3/movie/550?api_key=ce5647b488052f5943bd02072b1896dc
+
+############################################################################################
+https://image.tmdb.org/t/p/w500
+*/
+
+function movieHandler(request, response) {
+
+  let city = request.query.search_query;
+  let url = 'https://api.themoviedb.org/3/search/movie';
+  let queryParams = {
+    api_key: MOVIE_API_KEY,
+    query: city,
+    page: 1
+  };
+
+  superagent.get(url)
+    .query(queryParams)
+    .then(movieResult => {
+      const allMovies = movieResult.body.results.map(value => {
+        return new Movie(value);
+      });
+      response.send(allMovies) 
+    }).catch((error) => {
+      console.log('ERROR', error);
+      response.status(500).send('Sorry! Please try again! Movies.');
+    });
+}
+
+
 
 /*
      __
@@ -252,11 +302,31 @@ function Trail(obj) {
   this.trail_url = obj.url;
   this.conditions = obj.conditionStatus;
   let conditionDateTime = obj.conditionDate.split(' ');
-  this.condition_date = conditionDateTime[0];
+  this.condition_date = conditionDateTime[0]; 
   this.condition_time = conditionDateTime[1];
 }
 
+function Movie(obj) {
+  // console.log('This is the obj title in constructor movies', obj.title);
+  this.title = obj.title;
+  this.overview = obj.overview;
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
+  this.popularity = obj.popularity;
+  this.released_on = obj.release_date;
+}
+
 /*
+
+  let title = request.query.title;
+  let overview = request.query.overview;
+  let average_votes = request.query.average_votes;
+  let total_votes = request.query.total_votes;
+  let image_url = request.query.image_url;
+  let popularity = request.query.popularity;
+  let released = request.query.released_on;
+
      __
  ___( o)>
  \ <_. )
