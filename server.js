@@ -52,6 +52,7 @@ const GEO_DATA_API_KEY = process.env.GEO_DATA_API_KEY;
 const WEATHER_API_KEY = process.env.WEATHER_API_KEY;
 const HIKE_API_KEY = process.env.HIKE_API_KEY;
 const MOVIE_API_KEY = process.env.MOVIE_API_KEY;
+const YELP_API_KEY = process.env.YELP_API_KEY;
 
 /*
      __
@@ -67,6 +68,8 @@ app.get('/weather', weatherHandler);
 app.get('/trails', trailsHandler);
 
 app.get('/movies', movieHandler);
+
+app.get('/yelp', yelpHandler);
 
 /*
      __
@@ -256,12 +259,62 @@ function movieHandler(request, response) {
       const allMovies = movieResult.body.results.map(value => {
         return new Movie(value);
       });
-      response.send(allMovies) 
+      response.send(allMovies);
     }).catch((error) => {
       console.log('ERROR', error);
       response.status(500).send('Sorry! Please try again! Movies.');
     });
 }
+
+/*
+     __
+ ___( o)>
+ \ <_. )
+  `---'   hjw <Rubber duck says: weather is done, on to trails
+
+############################################################################################
+
+YELP
+
+
+ Client ID
+
+tEcPE6aKEhFpZN4GDCM5qQ
+API Key
+
+W4Ga-8DT8eiLhSfO9X7JNKVzVa6aX6DONCQa6IxZp_hh3itmBVzU-5DJ3pDvQMYN-pEUkTCN_g3u6C-0mlrvfGMFSmiWv1kGba7z1LXswkvf3WSya4-5OP9KwtMRX3Yx
+
+############################################################################################
+
+*/
+
+function yelpHandler(request, response) {
+
+  let url = 'https://api.yelp.com/v3/businesses/search';
+
+  let restaurantQueryParams = {
+    // Authorization: 'Bearer ' + process.env.YELP_API_KEY,
+    // query: request.query.search_query,
+    latitude: request.query.latitude,
+    longitude: request.query.longitude
+    // will also deal with pagination here.
+  };
+
+  // console.log('this should be reastuarnats');
+
+  superagent.get(url)
+    .set({'Authorization': 'Bearer ' + YELP_API_KEY})
+    .query(restaurantQueryParams)
+    .then(resultsFromSuperAgent => {
+      let restaurantArray = resultsFromSuperAgent.body.businesses.map(obj => {
+        return new Restaurants(obj);
+      });
+      response.status(200).send(restaurantArray);
+    }).catch((error) => {
+      console.log('ERROR', error);
+      response.status(500).send('We are sorry, something went wrong: yelp');
+    });
+} 
 
 
 
@@ -302,7 +355,7 @@ function Trail(obj) {
   this.trail_url = obj.url;
   this.conditions = obj.conditionStatus;
   let conditionDateTime = obj.conditionDate.split(' ');
-  this.condition_date = conditionDateTime[0]; 
+  this.condition_date = conditionDateTime[0];
   this.condition_time = conditionDateTime[1];
 }
 
@@ -315,6 +368,15 @@ function Movie(obj) {
   this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
   this.popularity = obj.popularity;
   this.released_on = obj.release_date;
+}
+
+
+function Restaurants (obj) {
+  this.name = obj.name;
+  this.image_url = obj.image_url;
+  this.price = obj.price;
+  this.rating = obj.rating;
+  this.url = obj.url;
 }
 
 /*
